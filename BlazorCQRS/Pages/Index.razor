@@ -1,0 +1,39 @@
+﻿@page "/"
+@inject MediatR.IMediator _mediator
+
+<PageTitle>Posts</PageTitle>
+
+<h1>Posts</h1>
+
+
+<EditForm Model="@postModel" OnValidSubmit="@HandleValidSubmit">
+    <InputText id="title" @bind-Value="postModel.Title"/>
+    <InputText id="content" @bind-Value="postModel.Content"/>
+    <InputNumber id="blogId" @bind-Value="postModel.BlogId"/>
+    <button type="submit">Submit</button>
+</EditForm>
+
+<ul>
+    @foreach (var post in posts)
+    {
+        <li>@post.Title</li>
+    }
+</ul>
+
+@code {
+    List<Post> posts;
+    private PostModel postModel = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        posts = await _mediator.Send(new GetPostListQuery());
+    }
+
+    private async void HandleValidSubmit()
+    {
+        var post = await _mediator.Send(
+            new InsertPostCommand(postModel.Title, postModel.Content, postModel.BlogId));
+        posts.Add(post);
+        StateHasChanged();
+    }
+}
